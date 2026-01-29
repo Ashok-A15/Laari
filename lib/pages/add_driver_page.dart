@@ -6,57 +6,57 @@ class AddDriverPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
-        title: const Text(
-          "Add Driver",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("New Driver"),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
               "Driver Details",
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              "Fill in the information to add a new driver to your fleet.",
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+            const SizedBox(height: 40),
+
+            _inputField(label: "Driver Name", icon: Icons.person_outline_rounded),
             const SizedBox(height: 20),
 
-            _inputField("Driver Name"),
-            const SizedBox(height: 14),
+            _inputField(label: "Mobile Number", icon: Icons.phone_android_rounded, keyboard: TextInputType.phone),
+            const SizedBox(height: 20),
 
-            _inputField("Mobile Number", keyboard: TextInputType.phone),
-            const SizedBox(height: 14),
+            _inputField(label: "Licence Number", icon: Icons.badge_outlined),
+            const SizedBox(height: 20),
 
-            _inputField("ID Card / Licence No"),
-            const SizedBox(height: 14),
-
-            _inputField("City / Location"),
-            const SizedBox(height: 25),
+            _inputField(label: "City / Location", icon: Icons.location_on_outlined),
+            const SizedBox(height: 40),
 
             SizedBox(
               width: double.infinity,
+              height: 56,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14
-                  ),
+                  backgroundColor: const Color(0xFF185A9D),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 child: const Text(
-                  "Save Driver",
-                  style: TextStyle(fontSize: 18),
+                  "Register Driver",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             )
@@ -66,22 +66,12 @@ class AddDriverPage extends StatelessWidget {
     );
   }
 
-  Widget _inputField(String label, {TextInputType? keyboard}) {
+  Widget _inputField({required String label, required IconData icon, TextInputType? keyboard}) {
     return TextField(
       keyboardType: keyboard,
       decoration: InputDecoration(
         labelText: label,
-        filled: true,
-        fillColor: Colors.white,
-        labelStyle: const TextStyle(fontSize: 16),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF43CEA2)),
       ),
     );
   }

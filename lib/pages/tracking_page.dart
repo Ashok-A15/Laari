@@ -13,7 +13,7 @@ class _TrackingPageState extends State<TrackingPage> {
   GoogleMapController? _mapController;
 
   static const CameraPosition _startLocation = CameraPosition(
-    target: LatLng(22.7196, 75.8577), // Default sample location
+    target: LatLng(22.7196, 75.8577), 
     zoom: 14,
   );
 
@@ -25,8 +25,7 @@ class _TrackingPageState extends State<TrackingPage> {
 
   Future<void> _checkPermission() async {
     LocationPermission permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied &&
-        permission == LocationPermission.deniedForever) {
+    if (permission == LocationPermission.denied) {
       await Geolocator.requestPermission();
     }
   }
@@ -34,156 +33,149 @@ class _TrackingPageState extends State<TrackingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text(
-          "Live Tracking",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Live Tracking"),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            /// ⭐ GOOGLE MAP WIDGET ⭐
-            SizedBox(
-              height: 280,
-              child: GoogleMap(
-                initialCameraPosition: _startLocation,
-                onMapCreated: (controller) {
-                  _mapController = controller;
-                },
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
-                zoomControlsEnabled: true,
-                compassEnabled: true,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// ⭐ DRIVER STATUS CARD ⭐
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: _startLocation,
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: true,
+          ),
+          
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
+                  BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search_rounded, color: Colors.grey),
+                  const SizedBox(width: 10),
+                  Text("Searching for Laari #12...", style: TextStyle(color: Colors.grey.shade600)),
+                  const Spacer(),
+                  const CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Color(0xFF43CEA2))),
+                ],
+              ),
+            ),
+          ),
+          
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, -5)),
                 ],
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Driver Assigned",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
                     ),
                   ),
-                  const SizedBox(height: 10),
-
+                  const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Amit Kumar",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: const Color(0xFF43CEA2).withOpacity(0.1),
+                        child: const Icon(Icons.person_rounded, color: Color(0xFF185A9D)),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Amit Kumar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text("Driver ID: #DR9821", style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                          ],
                         ),
                       ),
-                      Text(
-                        "On Duty",
-                        style: TextStyle(
-                          color: Colors.green.shade700,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: const Text("ON DUTY", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      _infoItem(Icons.location_on_rounded, "Current Location", "Near City Center"),
+                      const Spacer(),
+                      _infoItem(Icons.speed_rounded, "Speed", "24 km/h"),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.call_rounded, color: Colors.white),
+                          label: const Text("Call Driver", style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF185A9D)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.close_rounded, color: Colors.red),
                         ),
                       ),
                     ],
                   ),
-
-                  const Text(
-                    "Laari #12, Near City Center",
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                  const SizedBox(height: 14),
-
-                  /// ⭐ EARNINGS BOX ⭐
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.lightBlue.withOpacity(.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      "Today's Earnings: ₹1,540",
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            const SizedBox(height: 25),
-
-            /// ⭐ CONTACT BUTTON ⭐
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  "Call / Contact Driver",
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            /// ⭐ END TRIP BUTTON ⭐
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  "End Trip",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white
-                  ),
-                ),
-              ),
-            ),
+  Widget _infoItem(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.grey, size: 20),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-      ),
+      ],
     );
   }
 }
