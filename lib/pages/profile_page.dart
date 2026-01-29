@@ -7,6 +7,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = FirestoreService();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,15 +45,17 @@ class ProfilePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF43CEA2), Color(0xFF185A9D)],
+                    gradient: LinearGradient(
+                      colors: isDark 
+                        ? [const Color(0xFF1E272E), const Color(0xFF0F171A)]
+                        : [const Color(0xFF43CEA2), const Color(0xFF185A9D)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF185A9D).withOpacity(0.3),
+                        color: Colors.black.withOpacity(0.2),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -95,26 +98,19 @@ class ProfilePage extends StatelessWidget {
                 
                 Row(
                   children: [
-                    Expanded(child: _statCard("₹${data['totalEarnings'] ?? 0}", "Earnings", Icons.payments_rounded, Colors.green)),
+                    Expanded(child: _statCard(context, "₹${data['totalEarnings'] ?? 0}", "Earnings", Icons.payments_rounded, Colors.green)),
                     const SizedBox(width: 16),
-                    Expanded(child: _statCard("${data['activeLaaris'] ?? 0}", "Laaris", Icons.local_shipping_rounded, Colors.blue)),
+                    Expanded(child: _statCard(context, "${data['activeLaaris'] ?? 0}", "Laaris", Icons.local_shipping_rounded, Colors.blue)),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _statCard("${data['activeDrivers'] ?? 0}", "Active Drivers", Icons.people_rounded, Colors.orange, fullWidth: true),
+                _statCard(context, "${data['activeDrivers'] ?? 0}", "Active Drivers", Icons.people_rounded, Colors.orange, fullWidth: true),
                 
                 const SizedBox(height: 40),
                 
-                _buildOption(Icons.history_rounded, "Transaction History"),
-                _buildOption(Icons.headset_mic_rounded, "Support Center"),
-                _buildOption(Icons.info_outline_rounded, "About GoLorry"),
-                
-                const SizedBox(height: 30),
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                  label: const Text("Log Out", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
+                _buildOption(context, Icons.history_rounded, "Transaction History"),
+                _buildOption(context, Icons.headset_mic_rounded, "Support Center"),
+                _buildOption(context, Icons.info_outline_rounded, "About GoLorry"),
               ],
             ),
           );
@@ -123,16 +119,16 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _statCard(String value, String label, IconData icon, Color color, {bool fullWidth = false}) {
+  Widget _statCard(BuildContext context, String value, String label, IconData icon, Color color, {bool fullWidth = false}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -156,11 +152,11 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildOption(IconData icon, String title) {
+  Widget _buildOption(BuildContext context, IconData icon, String title) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(

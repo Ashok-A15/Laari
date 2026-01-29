@@ -8,14 +8,22 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class OwnerMap extends StatefulWidget {
-  const OwnerMap({super.key});
+  final Function(GoogleMapController)? onMapCreated;
+  final bool showDefaultLocationButton;
+
+  const OwnerMap({
+    super.key, 
+    this.onMapCreated,
+    this.showDefaultLocationButton = true,
+  });
 
   @override
-  State<OwnerMap> createState() => _OwnerMapState();
+  State<OwnerMap> createState() => OwnerMapState();
 }
 
-class _OwnerMapState extends State<OwnerMap> {
-  final Completer<GoogleMapController> _controller = Completer();
+class OwnerMapState extends State<OwnerMap> {
+  late GoogleMapController _controller;
+  bool _isControllerInitialized = false;
   BitmapDescriptor laariIcon = BitmapDescriptor.defaultMarker;
   Position? _currentPosition;
 
@@ -26,44 +34,39 @@ class _OwnerMapState extends State<OwnerMap> {
     _requestLocationPermission();
   }
 
-  /// Loads laari.png, resizes it, and converts it to a Google Maps marker
   Future<void> _setCustomMarker() async {
-    final ByteData data = await rootBundle.load('assets/laari.png');
-    final Uint8List bytes = data.buffer.asUint8List();
+    try {
+      final ByteData data = await rootBundle.load('assets/laari.png');
+      final Uint8List bytes = data.buffer.asUint8List();
 
-    final ui.Codec codec = await ui.instantiateImageCodec(
-      bytes,
-      targetWidth: 120,   // 👈 change size here
-      targetHeight: 120,  // 👈 change size here
-    );
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        bytes,
+        targetWidth: 120,
+        targetHeight: 120,
+      );
 
-    final ui.FrameInfo frameInfo = await codec.getNextFrame();
-    final ByteData? resizedData =
-        await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final ByteData? resizedData =
+          await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
 
-    final Uint8List resizedBytes = resizedData!.buffer.asUint8List();
+      final Uint8List resizedBytes = resizedData!.buffer.asUint8List();
 
-    setState(() {
-      laariIcon = BitmapDescriptor.fromBytes(resizedBytes);
-    });
+      setState(() {
+        laariIcon = BitmapDescriptor.fromBytes(resizedBytes);
+      });
+    } catch (e) {
+      print("Error loading custom marker: $e");
+    }
   }
 
   Future<void> _requestLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Handle denied
-        return;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      // Handle denied forever
-      return;
     }
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<void> animateToCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -71,18 +74,18 @@ class _OwnerMapState extends State<OwnerMap> {
       setState(() {
         _currentPosition = position;
       });
-      // Move camera to current location with zoom level
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(position.latitude, position.longitude),
-            zoom: 15,
+      
+      if (_isControllerInitialized) {
+        _controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: 15,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
-      // Handle error
       print('Error getting location: $e');
     }
   }
@@ -94,7 +97,7 @@ class _OwnerMapState extends State<OwnerMap> {
         markerId: const MarkerId("laari1"),
         position: const LatLng(12.3077, 76.6533),
         icon: laariIcon,
-        anchor: const Offset(0.5, 0.5), // 👈 centers marker like Uber
+        anchor: const Offset(0.5, 0.5),
       ),
     };
 
@@ -108,32 +111,36 @@ class _OwnerMapState extends State<OwnerMap> {
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(12.3077, 76.6533),
-              zoom: 13,
-            ),
-            markers: markers,
-            onMapCreated: (GoogleMapController controller) {
-              if (!_controller.isCompleted) {
-                _controller.complete(controller);
-              }
-            },
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(12.3077, 76.6533),
+            zoom: 13,
           ),
+          markers: markers,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false, // We use our own buttons
+          onMapCreated: (GoogleMapController controller) {
+            _controller = controller;
+            _isControllerInitialized = true;
+            if (widget.onMapCreated != null) {
+              widget.onMapCreated!(controller);
+            }
+          },
+        ),
+        if (widget.showDefaultLocationButton)
           Positioned(
             bottom: 16,
             right: 16,
             child: FloatingActionButton(
-              onPressed: _getCurrentLocation,
-              child: const Icon(Icons.my_location),
+              heroTag: "owner_map_loc_btn",
+              onPressed: animateToCurrentLocation,
+              backgroundColor: Colors.white,
+              child: const Icon(Icons.my_location, color: Color(0xFF185A9D)),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }

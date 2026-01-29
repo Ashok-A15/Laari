@@ -23,6 +23,8 @@ class _OwnerMainPageState extends State<OwnerMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       extendBody: true,
       body: _pages[_currentIndex],
@@ -30,11 +32,11 @@ class _OwnerMainPageState extends State<OwnerMainPage> {
         margin: const EdgeInsets.all(20),
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -75,15 +77,15 @@ class _OwnerMainPageState extends State<OwnerMainPage> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF185A9D) : Colors.grey,
+              color: isSelected ? const Color(0xFF43CEA2) : Colors.grey,
             ),
             if (isSelected)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: Text(
                   label,
-                  style: const TextStyle(
-                    color: Color(0xFF185A9D),
+                  style: TextStyle(
+                    color: isSelected ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF185A9D)) : Colors.grey,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

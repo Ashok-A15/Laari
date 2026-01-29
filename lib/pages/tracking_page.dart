@@ -24,9 +24,28 @@ class _TrackingPageState extends State<TrackingPage> {
   }
 
   Future<void> _checkPermission() async {
-    LocationPermission permission = await Geolocator.requestPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       await Geolocator.requestPermission();
+    }
+  }
+
+  Future<void> _animateToCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 15,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error getting location: $e');
     }
   }
 
@@ -71,6 +90,18 @@ class _TrackingPageState extends State<TrackingPage> {
                   const CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Color(0xFF43CEA2))),
                 ],
               ),
+            ),
+          ),
+
+          // Current Location Button
+          Positioned(
+            top: 90,
+            right: 20,
+            child: FloatingActionButton.small(
+              heroTag: "tracking_loc_btn",
+              onPressed: _animateToCurrentLocation,
+              backgroundColor: Colors.white,
+              child: const Icon(Icons.my_location, color: Color(0xFF185A9D)),
             ),
           ),
           
