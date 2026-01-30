@@ -5,6 +5,8 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'role_selection_page.dart';
 import 'owner_main_page.dart';
+import 'dashboard_page.dart';
+import '../services/firestore_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -67,13 +69,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.forward().then((_) => _navigateToNext());
   }
 
-  void _navigateToNext() {
+  Future<void> _navigateToNext() async {
     if (!mounted) return;
     User? user = FirebaseAuth.instance.currentUser;
+    
+    Widget nextPage;
+    if (user == null) {
+      nextPage = const RoleSelectionPage();
+    } else {
+      String role = await FirestoreService().getUserRole();
+      if (role == 'owner') {
+        nextPage = const OwnerMainPage();
+      } else {
+        nextPage = const DashboardPage();
+      }
+    }
+
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 800),
-        pageBuilder: (context, animation, secondaryAnimation) => user != null ? const OwnerMainPage() : const RoleSelectionPage(),
+        pageBuilder: (context, animation, secondaryAnimation) => nextPage,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },

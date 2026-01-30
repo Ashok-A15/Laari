@@ -7,6 +7,7 @@ import 'change_password_page.dart';
 import 'notification_settings_page.dart';
 import 'help_center_page.dart';
 import 'privacy_policy_page.dart';
+import '../services/firestore_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -149,6 +150,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                       ),
                       subtitle: const Text("Sign out of your account session"),
                       onTap: () async {
+                        FirestoreService().clearCache();
                         await FirebaseAuth.instance.signOut();
                         if (!mounted) return;
                         Navigator.of(context).pushAndRemoveUntil(
