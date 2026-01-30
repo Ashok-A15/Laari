@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 import '../widgets/bottom_nav.dart';
 import '../widgets/owner_map.dart';
 import '../services/firestore_service.dart';
@@ -19,11 +21,31 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _isOwner = false;
   bool _isLoading = true;
   final FirestoreService _firestoreService = FirestoreService();
+  StreamSubscription<Position>? _locationSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadDashboardData();
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _startLocationSharing() {
+    if (_isOwner) return;
+
+    _locationSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      _firestoreService.updateDriverLocation(position.latitude, position.longitude);
+    });
   }
 
   Future<void> _loadDashboardData() async {
@@ -44,6 +66,10 @@ class _DashboardPageState extends State<DashboardPage> {
         _isOwner = role == 'owner';
         _isLoading = false;
       });
+      
+      if (role == 'driver') {
+        _startLocationSharing();
+      }
     }
   }
 
@@ -159,8 +185,77 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: const OwnerMap(),
               ),
             ),
+            if (!_isOwner) ...[
+              const SizedBox(height: 30),
+              _buildTakeJobButton(),
+            ],
             const SizedBox(height: 100),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTakeJobButton() {
+    return Container(
+      width: double.infinity,
+      height: 100,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF43CEA2), Color(0xFF185A9D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF185A9D).withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.flash_on_rounded, color: Colors.white, size: 32),
+              ),
+              const SizedBox(width: 20),
+              const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    "Take New Job",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    "Available nearby trips",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

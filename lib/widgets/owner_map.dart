@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/firestore_service.dart';
 
 class OwnerMap extends StatefulWidget {
   final Function(GoogleMapController)? onMapCreated;
@@ -26,12 +28,51 @@ class OwnerMapState extends State<OwnerMap> {
   bool _isControllerInitialized = false;
   BitmapDescriptor laariIcon = BitmapDescriptor.defaultMarker;
   Position? _currentPosition;
+  final Set<Marker> _driverMarkers = {};
+  StreamSubscription? _driversSubscription;
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    _setCustomMarker();
+    _setCustomMarker().then((_) => _startTrackingDrivers());
     _requestLocationPermission();
+  }
+
+  @override
+  void dispose() {
+    _driversSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _startTrackingDrivers() async {
+    final ownerId = await _firestoreService.getEffectiveOwnerId();
+    if (ownerId == null) return;
+
+    _driversSubscription = _firestoreService.getDriversStream(ownerId).listen((snapshot) {
+      final Set<Marker> newMarkers = {};
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final GeoPoint? location = data['currentLocation'] as GeoPoint?;
+        if (location != null) {
+          newMarkers.add(
+            Marker(
+              markerId: MarkerId(doc.id),
+              position: LatLng(location.latitude, location.longitude),
+              icon: laariIcon,
+              anchor: const Offset(0.5, 0.5),
+              infoWindow: InfoWindow(title: data['name'] ?? "Driver"),
+            ),
+          );
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _driverMarkers.clear();
+          _driverMarkers.addAll(newMarkers);
+        });
+      }
+    });
   }
 
   Future<void> _setCustomMarker() async {
@@ -51,11 +92,13 @@ class OwnerMapState extends State<OwnerMap> {
 
       final Uint8List resizedBytes = resizedData!.buffer.asUint8List();
 
-      setState(() {
-        laariIcon = BitmapDescriptor.fromBytes(resizedBytes);
-      });
+      if (mounted) {
+        setState(() {
+          laariIcon = BitmapDescriptor.fromBytes(resizedBytes);
+        });
+      }
     } catch (e) {
-      print("Error loading custom marker: $e");
+      debugPrint("Error loading custom marker: $e");
     }
   }
 
@@ -71,9 +114,11 @@ class OwnerMapState extends State<OwnerMap> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() {
-        _currentPosition = position;
-      });
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }
       
       if (_isControllerInitialized) {
         _controller.animateCamera(
@@ -86,20 +131,13 @@ class OwnerMapState extends State<OwnerMap> {
         );
       }
     } catch (e) {
-      print('Error getting location: $e');
+      debugPrint('Error getting location: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Set<Marker> markers = {
-      Marker(
-        markerId: const MarkerId("laari1"),
-        position: const LatLng(12.3077, 76.6533),
-        icon: laariIcon,
-        anchor: const Offset(0.5, 0.5),
-      ),
-    };
+    Set<Marker> markers = Set.from(_driverMarkers);
 
     if (_currentPosition != null) {
       markers.add(
@@ -120,7 +158,7 @@ class OwnerMapState extends State<OwnerMap> {
           ),
           markers: markers,
           myLocationEnabled: true,
-          myLocationButtonEnabled: false, // We use our own buttons
+          myLocationButtonEnabled: false,
           onMapCreated: (GoogleMapController controller) {
             _controller = controller;
             _isControllerInitialized = true;

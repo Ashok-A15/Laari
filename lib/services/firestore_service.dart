@@ -84,4 +84,21 @@ class FirestoreService {
         .where('ownerId', isEqualTo: ownerId)
         .snapshots();
   }
+
+  // Update driver location
+  Future<void> updateDriverLocation(double lat, double lng) async {
+    if (currentUid.isEmpty) return;
+    await _db.collection('drivers').doc(currentUid).update({
+      'currentLocation': GeoPoint(lat, lng),
+      'lastLocationUpdate': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Update driver last login
+  Future<void> updateLastLogin() async {
+    if (currentUid.isEmpty) return;
+    await _db.collection('drivers').doc(currentUid).update({
+      'lastLogin': FieldValue.serverTimestamp(),
+    });
+  }
 }

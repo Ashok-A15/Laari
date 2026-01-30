@@ -7,6 +7,7 @@ import 'change_password_page.dart';
 import 'notification_settings_page.dart';
 import 'help_center_page.dart';
 import 'privacy_policy_page.dart';
+import 'dashboard_page.dart';
 import '../services/firestore_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -39,140 +40,159 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final isDark = themeNotifier.value == ThemeMode.dark;
     
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120.0,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                "Settings",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
+        );
+      },
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120.0,
+              floating: false,
+              pinned: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DashboardPage()),
+                  );
+                },
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark 
-                      ? [const Color(0xFF1E272E), const Color(0xFF0F171A)]
-                      : [const Color(0xFF43CEA2), const Color(0xFF185A9D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              flexibleSpace: FlexibleSpaceBar(
+                title: const Text(
+                  "Settings",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark 
+                        ? [const Color(0xFF1E272E), const Color(0xFF0F171A)]
+                        : [const Color(0xFF43CEA2), const Color(0xFF185A9D)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
                 ),
               ),
+              iconTheme: const IconThemeData(color: Colors.white),
             ),
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          SliverList(
-            delegate: SliverChildListDelegate([
-              const SizedBox(height: 20),
-              
-              _buildAnimatedSection("Account", 0),
-              _buildAnimatedTile(
-                Icons.person_outline_rounded,
-                "Profile Information",
-                () => _navigateTo(const ProfileInfoPage()),
-                1,
-              ),
-              _buildAnimatedTile(
-                Icons.lock_outline_rounded,
-                "Change Password",
-                () => _navigateTo(const ChangePasswordPage()),
-                2,
-              ),
-              _buildAnimatedTile(
-                Icons.notifications_none_rounded,
-                "Notifications",
-                () => _navigateTo(const NotificationSettingsPage()),
-                3,
-              ),
-              
-              const SizedBox(height: 24),
-              _buildAnimatedSection("App Settings", 4),
-              _buildAnimatedTile(
-                Icons.dark_mode_outlined,
-                "Dark Mode",
-                () {},
-                5,
-                trailing: Switch(
-                  value: isDark,
-                  activeColor: const Color(0xFF43CEA2),
-                  onChanged: (v) {
-                    setState(() {
-                      themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light;
-                    });
-                  },
+            SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 20),
+                
+                _buildAnimatedSection("Account", 0),
+                _buildAnimatedTile(
+                  Icons.person_outline_rounded,
+                  "Profile Information",
+                  () => _navigateTo(const ProfileInfoPage()),
+                  1,
                 ),
-              ),
-              
-              const SizedBox(height: 24),
-              _buildAnimatedSection("Support", 6),
-              _buildAnimatedTile(
-                Icons.help_outline_rounded,
-                "Help Center",
-                () => _navigateTo(const HelpCenterPage()),
-                7,
-              ),
-              _buildAnimatedTile(
-                Icons.policy_outlined,
-                "Privacy Policy",
-                () => _navigateTo(const PrivacyPolicyPage()),
-                8,
-              ),
-              
-              const SizedBox(height: 40),
-              FadeTransition(
-                opacity: _animationController,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          shape: BoxShape.circle,
+                _buildAnimatedTile(
+                  Icons.lock_outline_rounded,
+                  "Change Password",
+                  () => _navigateTo(const ChangePasswordPage()),
+                  2,
+                ),
+                _buildAnimatedTile(
+                  Icons.notifications_none_rounded,
+                  "Notifications",
+                  () => _navigateTo(const NotificationSettingsPage()),
+                  3,
+                ),
+                
+                const SizedBox(height: 24),
+                _buildAnimatedSection("App Settings", 4),
+                _buildAnimatedTile(
+                  Icons.dark_mode_outlined,
+                  "Dark Mode",
+                  () {},
+                  5,
+                  trailing: Switch(
+                    value: isDark,
+                    activeColor: const Color(0xFF43CEA2),
+                    onChanged: (v) {
+                      setState(() {
+                        themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light;
+                      });
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                _buildAnimatedSection("Support", 6),
+                _buildAnimatedTile(
+                  Icons.help_outline_rounded,
+                  "Help Center",
+                  () => _navigateTo(const HelpCenterPage()),
+                  7,
+                ),
+                _buildAnimatedTile(
+                  Icons.policy_outlined,
+                  "Privacy Policy",
+                  () => _navigateTo(const PrivacyPolicyPage()),
+                  8,
+                ),
+                
+                const SizedBox(height: 40),
+                FadeTransition(
+                  opacity: _animationController,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.logout_rounded, color: Colors.redAccent),
                         ),
-                        child: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                        title: const Text(
+                          "Log Out",
+                          style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: const Text("Sign out of your account session"),
+                        onTap: () async {
+                          FirestoreService().clearCache();
+                          await FirebaseAuth.instance.signOut();
+                          if (!mounted) return;
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (_) => const RoleSelectionPage()),
+                            (route) => false,
+                          );
+                        },
                       ),
-                      title: const Text(
-                        "Log Out",
-                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: const Text("Sign out of your account session"),
-                      onTap: () async {
-                        FirestoreService().clearCache();
-                        await FirebaseAuth.instance.signOut();
-                        if (!mounted) return;
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const RoleSelectionPage()),
-                          (route) => false,
-                        );
-                      },
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              const Center(
-                child: Text(
-                  "Version 1.2.4 • GoLorry Owner",
-                  style: TextStyle(color: Colors.grey, fontSize: 13, letterSpacing: 0.5),
+                const SizedBox(height: 40),
+                const Center(
+                  child: Text(
+                    "Version 1.2.4 • GoLorry Owner",
+                    style: TextStyle(color: Colors.grey, fontSize: 13, letterSpacing: 0.5),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 100),
-            ]),
-          ),
-        ],
+                const SizedBox(height: 100),
+              ]),
+            ),
+          ],
+        ),
       ),
     );
   }

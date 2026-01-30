@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dashboard_page.dart';
+import '../services/firestore_service.dart';
 
 class DriverLoginPage extends StatefulWidget {
   const DriverLoginPage({super.key});
@@ -74,6 +75,10 @@ class _DriverLoginPageState extends State<DriverLoginPage>
         email: emailController.text.trim(),
         password: passController.text.trim(),
       );
+
+      await FirestoreService().updateLastLogin();
+
+      if (!mounted) return;
 
       Navigator.pushReplacement(
         context,

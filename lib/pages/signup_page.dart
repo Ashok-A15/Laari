@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dashboard_page.dart';
+import 'login_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -92,9 +93,32 @@ class _SignupPageState extends State<SignupPage>
         "createdAt": FieldValue.serverTimestamp(),
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardPage()),
+      // Sign out the user so they are not automatically logged in
+      await _auth.signOut();
+
+      if (!mounted) return;
+
+      // Show success alert
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Success"),
+          content: const Text("Hii Owner, Your account creation is successful"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       String msg = "Signup failed";
